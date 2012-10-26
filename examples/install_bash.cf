@@ -1,0 +1,24 @@
+body common control {
+    version => "bash_completion_debian_0.1";
+
+    bundlesequence => {
+        "install_packages"
+    };
+
+
+    inputs => {
+        "cfengine_stdlib.cf"
+    };
+}
+
+
+bundle agent install_packages {
+    vars:
+        debian::
+            "packages_to_install" slist => { "bash", "bash-completion" };
+
+    packages:
+        "${packages_to_install}"
+            package_policy => "${paction}",
+            package_method => apt;
+}
