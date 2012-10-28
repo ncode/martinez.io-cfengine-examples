@@ -16,26 +16,24 @@
 # @author: Juliano Martinez
 
 body common control {
-    version => "bash_completion_debian_0.1";
+    version => "bash_completion_debian_0.2";
 
     bundlesequence => {
         "install_packages"
     };
 
-
     inputs => {
-        "cfengine_stdlib.cf"
+        "cfengine_stdlib.cf",
+        "library.cf"
     };
 }
 
 
 bundle agent install_packages {
     vars:
-        debian::
-            "packages_to_install" slist => { "bash", "bash-completion" };
+        "packages_to_install" slist => { "bash", "bash-completion" };
 
-    packages:
-        "${packages_to_install}"
-            package_policy => "${paction}",
-            package_method => apt;
+    methods:
+        debian|redhat::
+            "any" usebundle => manage_package("add", "$(packages_to_install)");
 }

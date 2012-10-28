@@ -1,0 +1,55 @@
+# Personal CFEngine Library
+
+# Copyright 2012 Juliano Martinez
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+# @author: Juliano Martinez
+
+# bundle to manage packages abstracting linux distribution
+bundle agent manage_package (action, package) {
+
+    vars:
+        i386|i486|i586|i686::
+            "arch" slist => { "noarch", "i386", "i486", "i586", "i686" };
+
+        x86_64::
+            "arch" slist => { "noarch", "x86_64" };
+
+    classes:
+        redhat::
+            "$(action)" expression => isvariable(action);
+
+        redhat.add::
+            "has_package" expression => returnszero("/bin/rpm -q ${package} --quiet", "noshell");
+
+    packages:
+        redhat.!add::
+            "${package}"
+                package_policy => "$(action)",
+                package_architectures => { "${arch}" },
+                package_method => yum;
+
+        redhat.add.!has_package::
+            "${package}"
+                package_policy => "$(action)",
+                package_architectures => { "${arch}" },
+                package_method => yum;
+
+        debian::
+            "${package}"
+                package_policy => "${action}",
+                package_method => apt;
+
+}
